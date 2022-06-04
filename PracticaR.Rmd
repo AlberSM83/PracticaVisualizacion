@@ -1,0 +1,66 @@
+---
+title: "Untitled"
+author: "Alberto Sánchez Mazarro y S"
+date: "1/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(lubridate)
+library(data.table)
+library(stringr)
+library(ggplot2)
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+datos <- read.csv("owid-covid-data.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+datos$date <- as.Date(datos$date, format =  "%Y-%m-%d")
+datos$mes <- month(as.POSIXlt(datos$date, format="%Y-%m-%d"))
+datosFinMes <- filter (datos, date =="2020-01-31"  | date =="2020-02-29" | date =="2020-03-31" | date =="2020-04-30" | date =="2020-05-31"| date =="2020-06-30" | date =="2020-07-31") 
+datosFinJulio <- filter (datos, date =="2020-07-31" )
+datosFinJulio$total_cases_per_million <- round(datosFinJulio$total_cases_per_million)
+datosFinJulio$total_deaths_per_million <- round(datosFinJulio$total_deaths_per_million)
+```
+
+
+```{r cars}
+latitudes <- read.csv("countries_codes_and_coordinates.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+names(latitudes)[3] <- 'iso_code'
+names(latitudes)[5] <- 'latitud'
+latitudes$iso_code<-str_trim(latitudes$iso_code)
+names(datosFinJulio)[0] <- 'iso_code'
+datosJulioConLatitudes<-merge(x=latitudes, y=datosFinJulio, by="iso_code")
+datosJulioConLatitudes$Hemisferio<-with(datosJulioConLatitudes, ifelse(latitud > 0, 'N', 'S'))
+datosJulioConLatitudes$Hemisferio <- as.factor(datosJulioConLatitudes$Hemisferio)
+
+
+```
+
+
+```{r cars}
+write.csv(datosEspana,"datosEspana2.csv", row.names = TRUE)
+write.csv(datosFinMes,"datosFinMes.csv", row.names = TRUE, fileEncoding = "UTF-8")
+write.csv(datosJulioConLatitudes,"datosLatJulio.csv", row.names = TRUE, fileEncoding = "UTF-8")
+write.csv(datosFinJulio,"datosFinJulio.csv", row.names = TRUE, fileEncoding = "UTF-8")
+write.xlsx(datosFinJulio,"datosFinJulio2.xlsx",  fileEncoding = "UTF-8")
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
